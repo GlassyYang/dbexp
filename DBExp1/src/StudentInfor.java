@@ -1,3 +1,6 @@
+import lib.SqlQuery;
+import lib.UnEditableTableModel;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
@@ -7,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StudentInfor implements MainWindow{
+public class StudentInfor extends MainWindow{
     private JPanel root;
     private JButton quit;
     private JButton backToLogin;
@@ -39,12 +42,13 @@ public class StudentInfor implements MainWindow{
     private SqlQuery query = null;
 
     //用于更新显示的成绩的语句
-    private static String scoreQuery = "Select * from score where student_id = \"";
-    private static String[] columnName = {"课程号", "授课教师", "成绩"};
+    private static String scoreQuery = "Select course_id, course_name, teacher_name, score  from score  where student_id = \"";
+    private static String[] columnName = {"课程号", "课程名", "授课教师", "成绩"};
     //用于更新基本信息的语句
     private static String updateBaseInfo = "update students set stu_name=\"%s\", stu_age=%s, stu_sex=\"%s\" where stu_id=\"%s\";";
     //用于选课信息的语句
     private static String[] courseColumn = {"课程号", "课程名", "授课教师", "容量", "已选人数"};
+    private static String[] courseColumnName = {"course_id", "course_name", "teacher_name", "capacity", "selected_num"};
     private static String courseInfoQuery = "select * from courseInfo";
     //查询是否已经有存在的选课记录了，这里的要求是课程id不能相同，即使是选了不同老师的相同的课也是不行的。
     private static String checkInsert = "select * from curricula_variable where course_id=\"%s\" and student_id=\"%s\";";
@@ -53,8 +57,8 @@ public class StudentInfor implements MainWindow{
     private List<Tuple> teacherInfo;
     private StudentInfor(String stuId){
         this.stuId = stuId;
-        scoreModel = new DefaultTableModel();
-        courseInfo = new DefaultTableModel();
+        scoreModel = new UnEditableTableModel();
+        courseInfo = new UnEditableTableModel();
         quit.addActionListener(e -> {
             System.exit(0);
         });
@@ -80,12 +84,18 @@ public class StudentInfor implements MainWindow{
             for(int i = 0; i < selectedRow.length; i++){
                 String courseId = (String)courseInfoTable.getValueAt(selectedRow[i], 0);
                 try {
-                    if (query.existItem(String.format(checkInsert, courseId, stuId))) {
-                        query.modifyData(String.format(insert, stuId, courseId, teacherInfo.get(selectedRow[i])));
+                    if (!query.existItem(String.format(checkInsert, courseId, stuId))) {
+                        query.modifyData(String.format(insert, stuId, courseId, teacherInfo.get(selectedRow[i]).getTeacherId()));
+                    }else{
+                        JOptionPane.showMessageDialog(parent, "已经选过课程" + courseInfo.getValueAt(i, 1));
                     }
                 }catch(Exception except){
                     JOptionPane.showMessageDialog(parent, except.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
+                JOptionPane.showMessageDialog(parent, "选课成功！");
+                RefreshScore refresh = new RefreshScore();
+                refresh.actionPerformed(null);
             }
         });
     }
@@ -144,16 +154,21 @@ public class StudentInfor implements MainWindow{
         //显示可选课程
         set = query.queryStatement(String.format(courseInfoQuery));
         String[] temp = new String[5];
-        int count = 0;
         teacherInfo = new ArrayList<>();
+        int count = 0;
         while(set.next()){
             for(int i = 0; i < temp.length; i++){
-                temp[i] = set.getString(courseColumn[i]);
+                temp[i] = set.getString(courseColumnName[i]);
             }
             courseInfo.addRow(temp);
             teacherInfo.add(new Tuple(count, set.getString("teacher_id")));
             count++;
         }
+    }
+
+    @Override
+    public JPanel getRoot() {
+        return root;
     }
 
     public void setParent(JFrame parent) {
@@ -195,20 +210,14 @@ public class StudentInfor implements MainWindow{
         }
     }
 
-    public static JFrame getFrame(String id){
-        JFrame frame = new JFrame("学生个人信息管理");
-        StudentInfor infor = new StudentInfor(id);
-        try {
-            infor.prepareInformation();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(null, e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-            System.exit(0);
+
+    static class StudentFactory extends MainWindowFactory{
+        public JFrame getFrame(String id) throws Exception {
+            JFrame frame = new JFrame("学生个人信息管理");
+            StudentInfor infor = new StudentInfor(id);
+            super.setWindowOption(frame, infor);
+            return frame;
         }
-        infor.setParent(frame);
-        frame.setContentPane(infor.root);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 400);
-        return frame;
     }
 }
 

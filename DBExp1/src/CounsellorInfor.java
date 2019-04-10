@@ -1,7 +1,9 @@
+import lib.SqlQuery;
+
 import javax.swing.*;
 import java.sql.SQLException;
 
-public class CounsellorInfor implements MainWindow {
+public class CounsellorInfor extends MainWindow {
     private JTabbedPane tabbedPane1;
     private JTextField staIdShow;
     private JTextField name;
@@ -17,6 +19,8 @@ public class CounsellorInfor implements MainWindow {
     private JButton quit;
     private JPanel root;
 
+    private JFrame parent;
+
     private String staId;
     SqlQuery query;
     private CounsellorInfor(String staId) {
@@ -25,8 +29,7 @@ public class CounsellorInfor implements MainWindow {
             System.exit(0);
         });
         backToLogin.addActionListener(e -> {
-            JFrame frame = (JFrame)(root.getParent().getParent().getParent());
-            frame.dispose();
+            parent.dispose();
             LoginIn login = new LoginIn();
             login.setVisible(true);
         });
@@ -37,14 +40,25 @@ public class CounsellorInfor implements MainWindow {
 
     }
 
-    public static JFrame getFrame(String id) {
-        JFrame frame = new JFrame("辅导员信息管理系统");
-        frame.setContentPane(new CounsellorInfor(id).root);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        return frame;
+    @Override
+    public JPanel getRoot() {
+        return root;
     }
 
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
+    public JFrame getParent() {
+        return parent;
+    }
+
+    public void setParent(JFrame parent) {
+        this.parent = parent;
+    }
+    static class CounsellorFactory extends MainWindowFactory{
+        @Override
+        JFrame getFrame(String id) throws Exception {
+            JFrame frame = new JFrame("辅导员信息管理系统");
+            CounsellorInfor infor = new CounsellorInfor(id);
+            super.setWindowOption(frame, infor);
+            return frame;
+        }
     }
 }

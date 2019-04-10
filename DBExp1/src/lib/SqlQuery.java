@@ -1,3 +1,5 @@
+package lib;
+
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 
@@ -25,7 +27,7 @@ public class SqlQuery {
         for(int i = 0; i < count; i++){
             columnName[i] = meta.getColumnName(i + 1);
         }
-        model.setColumnIdentifiers(columnName);
+//        model.setColumnIdentifiers(columnName);
         String[] row = new String[count];
         while(set.next()){
             for(int i = 0; i < count; i++){

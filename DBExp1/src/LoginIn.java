@@ -1,3 +1,5 @@
+import lib.SqlQuery;
+
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.sql.SQLException;
@@ -33,19 +35,26 @@ public class LoginIn extends JFrame {
                 JOptionPane.showMessageDialog(this, "无法查到该学号/职工号的相关记录，请检查输入是否正确！");
                 return;
             }
+            MainWindowFactory factory = null;
             switch (selectedRole) {
                 case 1:
-                    frame = StudentInfor.getFrame(number);
+                    factory = new StudentInfor.StudentFactory();
                     break;
                 case 2:
-                    frame = TeacherInfor.getFrame(number);
+                    factory = new TeacherInfor.TeacherFactory();
                     break;
                 case 3:
-                    frame = CounsellorInfor.getFrame(number);
+                    factory = new CounsellorInfor.CounsellorFactory();
                     break;
                 default:
                     JOptionPane.showMessageDialog(this, "程序错误！", "错误", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
+            }
+            try{
+                frame = factory.getFrame(number);
+            }catch(Exception except){
+                JOptionPane.showMessageDialog(this, except.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             }
             this.dispose();
             frame.setVisible(true);
