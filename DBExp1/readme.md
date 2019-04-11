@@ -3,6 +3,7 @@ first database system experiment
 > jdk 1.11  
 > intellij idea  
 > MySQL 8.0.13
+
 ###2. how to use this project
 All things you need to do is:  
 1. Recover database from <code>backup.sql</code>;[how to recover database?](https://www.cnblogs.com/kissdodog/p/4174421.html)  
