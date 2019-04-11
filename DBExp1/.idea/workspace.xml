@@ -2,28 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c383b6f3-a405-4a8b-ae7e-3ec12988e753" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CounsellorInfor$CounsellorFactory.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CounsellorInfor.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CreateCourse$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CreateCourse$2.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CreateCourse$3.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CreateCourse$4.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/CreateCourse.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/LoginIn$Tuple.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/LoginIn.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/Main.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/MainWindow.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/MainWindowFactory.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/StudentInfor$RefreshScore.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/StudentInfor$StudentFactory.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/StudentInfor$Tuple.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/StudentInfor.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/TeacherInfor$TeacherFactory.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/TeacherInfor.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/lib/SingleColumnEditableTableModel.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/lib/SqlQuery.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/DBExp1/lib/UnEditableTableModel.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -92,8 +70,8 @@
         <entry file="file://$PROJECT_DIR$/readme.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="85">
-                <caret line="5" selection-start-line="5" selection-end-line="5" />
+              <first_editor relative-caret-position="62">
+                <caret line="4" column="16" selection-start-line="4" selection-start-column="16" selection-end-line="4" selection-end-column="16" />
               </first_editor>
               <second_editor />
             </state>
@@ -303,6 +281,7 @@
       <workItem from="1554980778855" duration="10474000" />
       <workItem from="1554996184757" duration="2524000" />
       <workItem from="1554999052950" duration="24000" />
+      <workItem from="1554999206227" duration="44000" />
     </task>
     <task id="LOCAL-00001" summary="add eclipse project and referenced libraries">
       <created>1554998676480</created>
@@ -315,12 +294,12 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="75274000" />
+    <option name="totallyTimeSpent" value="75318000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="784" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22692889" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22995462" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.24962178" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -639,8 +618,8 @@
     <entry file="file://$PROJECT_DIR$/readme.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="85">
-            <caret line="5" selection-start-line="5" selection-end-line="5" />
+          <first_editor relative-caret-position="62">
+            <caret line="4" column="16" selection-start-line="4" selection-start-column="16" selection-end-line="4" selection-end-column="16" />
           </first_editor>
           <second_editor />
         </state>

@@ -2,7 +2,7 @@ first database system experiment
 ### 1. Experiment envrionment
 > jdk 1.11  
 > intellij idea  
-> MySQL 8.0.13
+> MySQL 8.0.13  
 
 ###2. how to use this project
 All things you need to do is:  
