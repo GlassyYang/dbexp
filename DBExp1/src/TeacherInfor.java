@@ -36,17 +36,17 @@ public class TeacherInfor extends MainWindow{
     //用于查询的语句
     private static String queryBaseInfo = "select * from teacherInfo where `sta_id`=\"%s\";";
     private static String queryCourse = "select cour_id, cour_name, capacity, credit from course where teacher_id=\"%s\";";
-    private static String queryPostgraduateInfo = "select stu_id, stu_name,  from postStuInfoByInstructor where instructor_id=\"%s\";";
+    private static String queryPostgraduateInfo = "select stu_id, stu_name, stu_sex, stu_age, paper_num from students natural inner join postgraduate where instructor_id=\"%s\";";
     private static String queryStudent = "select stu_id, stu_name, col_name, dis_name, score from stuInfo natural inner join " +
             "(select student_id stu_id, score from curricula_variable where course_id=\"%s\" and teacher_id=\"%s\") as choose;";
 
     //用于创建课程和更新选课成绩的语句
     private static String insertCourse = "insert into course values(\"%s\", \"%s\", \"%s\", %s, %s);";
+    private static String updateScore = "update curricula_variable set score = %s where teacher_id=\"%s\" and course_id=\"%s\" and student_id=\"%s\"";
+    private String chosenCourseId;
     private TeacherInfor(String staId) {
         this.staId = staId;
-        quit.addActionListener(e -> {
-            System.exit(0);
-        });
+        quit.addActionListener(e -> System.exit(0));
         backToLogin.addActionListener(e -> {
             parent.dispose();
             LoginIn login = new LoginIn();
@@ -82,17 +82,45 @@ public class TeacherInfor extends MainWindow{
                 JOptionPane.showMessageDialog(parent, "没有选择课程或选择的课程多于一个，请重新选择！", "错误" ,JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            String courseId = (String)courseInfo.getValueAt(rows[0], 0);
-            System.out.println(courseId);
+            chosenCourseId = (String)courseInfo.getValueAt(rows[0], 0);
             courseChosen = new SingleColumnEditableTableModel(4);
             courseChosen.setColumnIdentifiers(chooseCourseTitle);
+            xuankeTable.setModel(courseChosen);
             try{
-                query.queryStatement(String.format(queryStudent, courseId, staId), courseChosen);
+                query.queryStatement(String.format(queryStudent, chosenCourseId, staId), courseChosen);
             }catch(Exception except){
                 JOptionPane.showMessageDialog(parent, except.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             JOptionPane.showMessageDialog(parent, "请到选课列表中查看名单");
+        });
+        modify.addActionListener((event)-> {
+            String updateInfor = "update staff set sta_name=\"%s\", sta_sex=\"%s\", sta_age=\"%s\" where sta_id=\"%s\";";
+            String age = staAge.getText();
+            String name = staName.getText();
+            String sex = staSex.getText();
+            try {
+                query.modifyData(String.format(updateInfor, name, sex, age, staId));
+            }catch(Exception e){
+                JOptionPane.showMessageDialog(parent, e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+            }
+            JOptionPane.showMessageDialog(parent, "信息修改成功！");
+        });
+        addScoreSingle.addActionListener((event)-> {
+            int rowNum = courseChosen.getRowCount();
+            for(int i = 0; i < rowNum; i++){
+                String stuId = (String)courseChosen.getValueAt(i, 0);
+                String score = (String)courseChosen.getValueAt(i, 4);
+                System.out.print(stuId);
+                System.out.print(score);
+                try{
+                    System.out.print(String.format(updateScore, score, staId, chosenCourseId, stuId));
+                    query.modifyData(String.format(updateScore, score, staId, chosenCourseId, stuId));
+                }catch(Exception e){
+                    JOptionPane.showMessageDialog(parent, String.format("更新学号为%s的学生成绩时发生错误：%s", stuId, e.getMessage()), "错误", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            JOptionPane.showMessageDialog(parent, "成绩更新完成！");
         });
     }
 
@@ -122,6 +150,7 @@ public class TeacherInfor extends MainWindow{
         postgraduateInfo.setColumnIdentifiers(stuTitle);
         studentTable.setModel(postgraduateInfo);
         studentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        query.queryStatement(String.format(queryPostgraduateInfo, staId), postgraduateInfo);
     }
 
     @Override

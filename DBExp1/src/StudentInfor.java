@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StudentInfor extends MainWindow{
+public class StudentInfor extends MainWindow {
     private JPanel root;
     private JButton quit;
     private JButton backToLogin;
@@ -55,7 +55,8 @@ public class StudentInfor extends MainWindow{
     private static String insert = "insert into curricula_variable(student_id, course_id, teacher_id) values(\"%s\", \"%s\", \"%s\")";
     //记住课程的开课老师的职工号
     private List<Tuple> teacherInfo;
-    private StudentInfor(String stuId){
+
+    private StudentInfor(String stuId) {
         this.stuId = stuId;
         scoreModel = new UnEditableTableModel();
         courseInfo = new UnEditableTableModel();
@@ -75,28 +76,31 @@ public class StudentInfor extends MainWindow{
             try {
                 query.modifyData(String.format(updateBaseInfo, newName, newAge, newSex, stuId));
                 JOptionPane.showMessageDialog(parent, "更新信息成功！");
-            }catch(SQLException except){
+            } catch (SQLException except) {
                 JOptionPane.showMessageDialog(parent, "更新信息失败！" + except.getMessage());
             }
         });
         chooseCourse.addActionListener(e -> {
-            int[] selectedRow = courseInfoTable.getSelectedColumns();
-            for(int i = 0; i < selectedRow.length; i++){
-                String courseId = (String)courseInfoTable.getValueAt(selectedRow[i], 0);
-                try {
+            int[] selectedRow = courseInfoTable.getSelectedRows();
+            try {
+                for (int i = 0; i < selectedRow.length; i++) {
+                    String courseId = (String) courseInfoTable.getValueAt(selectedRow[i], 0);
                     if (!query.existItem(String.format(checkInsert, courseId, stuId))) {
+                        JOptionPane.showMessageDialog(parent, courseInfo.getValueAt(selectedRow[i], 1) + "选课成功！");
                         query.modifyData(String.format(insert, stuId, courseId, teacherInfo.get(selectedRow[i]).getTeacherId()));
-                    }else{
-                        JOptionPane.showMessageDialog(parent, "已经选过课程" + courseInfo.getValueAt(i, 1));
+                    } else {
+                        JOptionPane.showMessageDialog(parent, "已经选过课程" + courseInfo.getValueAt(selectedRow[i], 1));
                     }
-                }catch(Exception except){
-                    JOptionPane.showMessageDialog(parent, except.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-                    return;
                 }
-                JOptionPane.showMessageDialog(parent, "选课成功！");
-                RefreshScore refresh = new RefreshScore();
-                refresh.actionPerformed(null);
+                courseInfo.setNumRows(0);
+                updateCourseInfo();
+            } catch (Exception except) {
+                JOptionPane.showMessageDialog(parent, except.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+            //这儿的更新没毛病
+            RefreshScore refresh = new RefreshScore();
+            refresh.actionPerformed(null);
         });
     }
 
@@ -114,19 +118,19 @@ public class StudentInfor extends MainWindow{
         build.append(stuId);
         build.append("\");");
         boolean isUndergraduate = false;
-        if(query.existItem(build.toString())){
+        if (query.existItem(build.toString())) {
             isUndergraduate = true;
         }
         build.setLength(0);
-        if(isUndergraduate){
+        if (isUndergraduate) {
             build.append(undergraduateInfo);
-        }else{
+        } else {
             build.append(postgraduateInfo);
         }
         build.append(stuId);
         build.append("\";");
         ResultSet set = query.queryStatement(build.toString());
-        if(!set.next()){
+        if (!set.next()) {
             throw new Exception("程序内部错误！");
         }
         stuIdShow.setText(stuId);
@@ -138,11 +142,11 @@ public class StudentInfor extends MainWindow{
         className.setText(set.getString("class_id"));
         headTeacher.setText(set.getString("teacher_name"));
         counName.setText(set.getString("counsellor_name"));
-        if(!isUndergraduate){
+        if (!isUndergraduate) {
             paperLabel.setText("论文数量：");
             paperText.setText(set.getString("paper_num"));
             instructorName.setText(set.getString("instructor_name"));
-        }else{
+        } else {
             paperLabel.setVisible(false);
             paperText.setVisible(false);
             instructorLabel.setText("创新学分数：");
@@ -152,12 +156,16 @@ public class StudentInfor extends MainWindow{
         RefreshScore refresh = new RefreshScore();
         refresh.actionPerformed(null);
         //显示可选课程
-        set = query.queryStatement(String.format(courseInfoQuery));
+        updateCourseInfo();
+    }
+
+    private void updateCourseInfo() throws Exception{
+        ResultSet set = query.queryStatement(String.format(courseInfoQuery));
         String[] temp = new String[5];
         teacherInfo = new ArrayList<>();
         int count = 0;
-        while(set.next()){
-            for(int i = 0; i < temp.length; i++){
+        while (set.next()) {
+            for (int i = 0; i < temp.length; i++) {
                 temp[i] = set.getString(courseColumnName[i]);
             }
             courseInfo.addRow(temp);
@@ -175,7 +183,7 @@ public class StudentInfor extends MainWindow{
         this.parent = parent;
     }
 
-    private class RefreshScore implements ActionListener{
+    private class RefreshScore implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             scoreModel.setNumRows(0);
@@ -185,14 +193,14 @@ public class StudentInfor extends MainWindow{
             build.append("\";");
             try {
                 query.queryStatement(build.toString(), scoreModel);
-            }catch(SQLException except){
+            } catch (SQLException except) {
                 JOptionPane.showMessageDialog(parent, except.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
                 System.exit(0);
             }
         }
     }
 
-    public class Tuple{
+    public class Tuple {
         final private int index;
         final private String teacherId;
 
@@ -211,7 +219,7 @@ public class StudentInfor extends MainWindow{
     }
 
 
-    static class StudentFactory extends MainWindowFactory{
+    static class StudentFactory extends MainWindowFactory {
         public JFrame getFrame(String id) throws Exception {
             JFrame frame = new JFrame("学生个人信息管理");
             StudentInfor infor = new StudentInfor(id);

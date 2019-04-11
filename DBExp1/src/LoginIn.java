@@ -57,6 +57,7 @@ public class LoginIn extends JFrame {
                 System.exit(0);
             }
             this.dispose();
+            MainWindow.setMediate(frame);
             frame.setVisible(true);
         });
         try {
