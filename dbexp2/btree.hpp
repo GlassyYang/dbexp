@@ -4,8 +4,16 @@
 #include <cstring>
 #include <stack>
 
+//#define ME_DEBUG
+//调试模式
+#ifndef ME_DEBUG
+
 #define BLOCKSIZE 1024
 #define MIDBLK 512
+#else
+#define BLOCKSIZE 4
+#define MIDBLK 2
+#endif
 #define MID(a, b) (((a) + (b)) >> 1)
 #define CAN_INSERT(capacity) ((capacity) < BLOCKSIZE)
 #define CAN_DELETE(capacity) ((capacity) >= MIDBLK)
@@ -29,14 +37,15 @@ class btree
 		value_type value[BLOCKSIZE];
 		struct bnode *child[BLOCKSIZE + 1];
 		int index;
-	} * root;
-	comparitor<value_type> comp;
+	} *root;
+	comparitor<value_type> *comp;
 	int binary_search(struct bnode*, value_type);
 	void init_node(bnode*);
 	void insert(bnode*, int, value_type);
 	value_type remove(bnode*, int);
+	void finalize(bnode *node);
   public:
-	btree(comparitor<value_type> comp);
+	btree(comparitor<value_type> *comp);
 	~btree();
 	bool insert(value_type);
 	bool find(value_type);
@@ -44,17 +53,30 @@ class btree
 };
 
 template <class T>
-btree<T>::btree(comparitor<T> comp)
+btree<T>::btree(comparitor<T> *comp)
 {
 	root = new bnode;
 	init_node(root);
-	this.comp = comp;
+	this->comp = comp;
 }
 
 template <class T>
 btree<T>::~btree()
 {
-	delete root;
+	finalize(root);
+}
+
+template<class T>
+void btree<T>::finalize(bnode *node)
+{
+	for(int i = 0; i <= node->index; i++)
+	{
+		if(node->child[i] != NULL){
+			finalize(node->child[i]);
+			node->child[i] = NULL;
+		}
+	}
+	delete node;
 }
 
 template <class T>
@@ -73,7 +95,7 @@ bool btree<T>::insert(T e)
 		if (index <= 0)
 		{
 			cur = cur->child[-index];
-			indexes.push(index);
+			indexes.push(-index);
 		}
 		else
 		{
@@ -81,8 +103,10 @@ bool btree<T>::insert(T e)
 		}
 	}
 	//查找到了该节点的插入位置，开始进行插入操作
-	cur = nodes.pop();
-	int index = indexes.pop();
+	cur = nodes.top();
+	nodes.pop();
+	int index = indexes.top();
+	indexes.pop();
 	//两个指针为NULL说明当前修改的是叶子节点，不是NULL说明当前修改的是内部节点；需要注意的是另个变量不会有不同的值；
 	bnode *left = NULL, *right = NULL;
 	//说明插入之后会超
@@ -92,37 +116,34 @@ bool btree<T>::insert(T e)
 		//然后扩展其父节点，将要插入的节点添加到其父节点中
 		bnode *buf = new bnode;
 		init_node(buf);
-		int temp = cur->index - MIDBLK;
-		memcpy((void*)(buf->value), (const void*)(cur->value + MIDBLK), SIZE(temp, T));
-		memcpy((void*)(buf->child), (const void*)(cur->child + MIDBLK), SIZE(temp + 1, struct bnode*));
-		buf->index = cur->index - MIDBLK;
-		cur->index = MIDBLK;
-		memset(static_cast<void*>(cur->value + MIDBLK), 0, temp);
-		memset(static_cast<void*>(cur->child + MIDBLK), 0, temp);
-		bnode *mblk;
+		int cut = index >= MIDBLK ? MIDBLK + 1: MIDBLK;
+		memcpy((void*)(buf->value), (const void*)(cur->value + cut), SIZE(BLOCKSIZE - cut, T));
+		memcpy((void*)(buf->child), (const void*)(cur->child + cut), SIZE(BLOCKSIZE - cut + 1, struct bnode*));
+		buf->index = cur->index - cut;
+		cur->index = cut;
+		memset(static_cast<void*>(cur->value + cut), 0, SIZE(BLOCKSIZE - cut, T));
+		memset(static_cast<void*>(cur->child + cut), 0, SIZE(BLOCKSIZE - cut + 1, struct bnode*));
 		if(index >= MIDBLK)
 		{
 			index -= MIDBLK;
-			mblk = buf;
+			insert(buf, index, ins);
+			buf->child[index] = left;
+			buf->child[index + 1] = right;
 		}
 		else
 		{
-			mblk = cur;
+			insert(cur, index, ins);
+			cur->child[index] = left;
+			cur->child[index + 1] = right;
 		}
 		//在做好这一切之后，需要将当前的值插入到父节点的位置上，然后将中间的值作为新的值插入
-		temp = indexes.pop();
-		T new_ins = cur->value[MIDBLK - 1];
-		insert(mblk, temp, ins);
-		ins = new_ins;
-		if(left != NULL)
-		{
-			cur->child[temp] = left;
-			buf->child[temp + 1] = right;
-		}
+		//需注意的是，如果父节点是空的，则说明刚刚插入的节点就是父节点，需要创建新的父
+		ins = cur->value[cut];
+		cur->index -= 1;
 		left = cur;
 		right = buf;
 		//为cur和index装载新的值，为空说明需要添加一层
-		if(nodes.empty)
+		if(nodes.empty())
 		{
 			cur = new bnode;
 			init_node(cur);
@@ -131,8 +152,10 @@ bool btree<T>::insert(T e)
 		}
 		else
 		{
-			cur = nodes.pop();
-			index = indexes.pop();
+			cur = nodes.top();
+			nodes.pop();
+			index = indexes.top();
+			indexes.pop();
 		}
 	}
 	//在能够插入之后直接将该值插入到其中去；
@@ -142,18 +165,19 @@ bool btree<T>::insert(T e)
 		cur->child[index] = left;
 		cur->child[index + 1] = right;
 	}
+	return true;
 }
 
 //找到返回true，没找到返回false
 template <class T>
 bool btree<T>::find(T e)
 {
-	struct bnode *cur = this.root;
+	struct bnode *cur = this->root;
 	while (cur != NULL)
 	{
 		//使用二分查找
 		int index = binary_search(cur, e);
-		if (index <= 0)
+		if (index < 0)
 		{
 			cur = cur->child[-index];
 		}
@@ -199,7 +223,8 @@ bool btree<T>::remove(T e)
 		return false;
 	}
 	cur = nodes.pop();
-	int index = indexes.pop();
+	int index = indexes.top();
+	indexes.pop();
 	//如果找到的节点不是叶子节点，需要将删除的节点进行替换，选择前驱节点进行替换，因为前驱节点删除比较简单
 	if(cur->child[index] != NULL)	//不是叶子节点，是内部节点
 	{
@@ -221,8 +246,10 @@ bool btree<T>::remove(T e)
 		index = indexes.top() - 1;
 		swap(cur->value[index], ntemp->value[itemp]);
 	}
-	cur = nodes.pop();
-	index = indexes.pop();
+	cur = nodes.top();
+	nodes.pop();
+	index = indexes.top();
+	indexes.pop();
 	//函数至此已经到达了叶子节点。因为删除只在叶子节点中进行，所以不用回溯
 	while(cur != NULL && !CAN_DELETE(cur->index))
 	{
@@ -254,7 +281,8 @@ bool btree<T>::remove(T e)
 				cur = parent;
 				index = pindex;
 				parent = nodes.pop();
-				pindex = indexes.pop();
+				pindex = indexes.top();
+				indexes.pop();
 			}
 		}
 		else if(lb != NULL)
@@ -294,15 +322,20 @@ bool btree<T>::remove(T e)
 /**
  * 二分查找函数，找到返回索引+1，否则返回负值，其相反数是该节点应该插入的地方+1；
  * 当返回0时，代表没有找到，即值比当前节点中所有的直都小
+ * 函数的意义为：当返回的之大于0的时候，是所寻找的元素所在的位置-1；当返回的值小于等于0的时候，
+ * 是元素所在的子节点的位置。
  */
 template <class T>
 int btree<T>::binary_search(struct bnode *node, T e)
 {
 	int begin = 0, end = node->index;
+	if(node->index == 0){
+		return 0;
+	}
 	int middle = MID(begin, end);
 	while (middle != begin)
 	{
-		int temp = comp.compate(node->value[middle], e);
+		int temp = comp->compare(node->value[middle], e);
 		if (temp < 0)
 		{
 			begin = middle;
@@ -315,15 +348,15 @@ int btree<T>::binary_search(struct bnode *node, T e)
 		}
 		else
 		{
-			return middle;
+			return middle + 1;
 		}
 	}
-	int temp = comp.compare(node->value[middle]);
+	int temp = comp->compare(node->value[middle], e);
 	if (temp == 0)
 	{
 		return middle + 1;
 	}
-	else if (temp < 0)
+	else if (temp > 0)
 	{
 		return 0;
 	}
@@ -336,9 +369,9 @@ int btree<T>::binary_search(struct bnode *node, T e)
 template <class T>
 void btree<T>::init_node(bnode *node)
 {
-	root->index = 0;
-	memset(static_cast<void *>(root->child), 0, SIZE(BLOCKSIZE + 1, struct bnode *));
-	memset(static_cast<void *>(root->value), 0, SIZE(BLOCKSIZE, T));
+	node->index = 0;
+	memset(static_cast<void *>(node->child), 0, SIZE(BLOCKSIZE + 1, struct bnode *));
+	memset(static_cast<void *>(node->value), 0, SIZE(BLOCKSIZE, T));
 }
 
 template <class T>
